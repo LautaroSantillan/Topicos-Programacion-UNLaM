@@ -50,7 +50,7 @@ bool esBisiesto(int anio)
 
 void mostrarFecha(const Fecha* f)
 {
-    printf("%02d/%02d/%d", f->dia, f->mes, f->anio);
+    printf("%02d/%02d/%d\n", f->dia, f->mes, f->anio);
 }
 
 /// Funciones propias realizadas
@@ -83,8 +83,6 @@ Fecha sumarDiasAFecha(const Fecha* f, int dias)
     return nuevaFecha;
 }
 
-//Preguntar
-
 Fecha restarDiasAFecha(const Fecha* f, int dias) {
     Fecha nuevaFecha;
 
@@ -102,6 +100,33 @@ Fecha restarDiasAFecha(const Fecha* f, int dias) {
     }
 
     return nuevaFecha;
+}
+
+int difEntreFechas(const Fecha* f1, const Fecha* f2)
+{
+    int totalDias1 = 0, totalDias2 = 0, diferencia = 0;
+
+    for (int i = 1; i < f1->mes; i++) {
+        totalDias1 += cantDiasMes(i, f1->anio);
+    }
+    totalDias1 += f1->dia;
+
+    for (int i = 1; i < f2->mes; i++) {
+        totalDias2 += cantDiasMes(i, f2->anio);
+    }
+    totalDias2 += f2->dia;
+
+    if (f1->anio == f2->anio) {
+        diferencia = totalDias2 - totalDias1;
+    } else {
+        for (int i = f1->anio + 1; i < f2->anio; i++) {
+            diferencia += esBisiesto(i) ? 366 : 365;
+        }
+        diferencia += esBisiesto(f1->anio) ? 366 - totalDias1 : 365 - totalDias1;
+        diferencia += totalDias2;
+    }
+
+    return diferencia;
 }
 
 int diaDelAnio(const Fecha* f)

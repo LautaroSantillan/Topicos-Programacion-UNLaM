@@ -26,6 +26,18 @@ int main()
 
 // ------------------------------------------------------------------------------------
 
+    ///Diferencia entre fechas (en dias)
+
+    Fecha fecha1 = ingresarFecha();
+    mostrarFecha(&fecha1);
+    Fecha fecha2 = ingresarFecha();
+    mostrarFecha(&fecha2);
+    int dif = difEntreFechas(&fecha1, &fecha2);
+    printf("\nLa diferencia en dias entre las dos fechas es: %d\n", dif);
+
+
+// ------------------------------------------------------------------------------------
+
     ///Obtener dia del año (en cantidad)
 
     /*Fecha fechaIng = ingresarFecha();
