@@ -129,4 +129,56 @@ int vectorEliminarValor(Vector* vec, int elem)
         return ERROR;
 }
 
-//printf("%d \t",vec->vec[i]);
+int vectorEliminarValorOrd(Vector* vec, int elem)
+{
+    for(int i = 0; vec->vec[i] <= elem; i++)
+    {
+        if(vec->vec[i] == elem)
+        {
+            for(int j = i; j < vec->ce; j++)
+                vec->vec[j] = vec->vec[j+1];
+            vec->ce--;
+            return TODO_OK;
+        }
+    }
+
+    return ERROR;
+}
+
+int vectorBuscarElemOrd(Vector* vec, int elem)
+{
+    for(int i = 0; vec->vec[i] <= elem; i++)
+    {
+        if(vec->vec[i] == elem)
+            return TODO_OK;
+    }
+
+    return ERROR;
+}
+
+int vectorBuscarElemDes(Vector* vec, int elem)
+{
+    for(int i = 0; i < vec->ce; i++)
+    {
+        if(vec->vec[i] == elem)
+        {
+            for(int j = i; j < vec->ce; j++)
+                vec->vec[j] = vec->vec[j+1];
+        }
+        vec->ce--;
+        return TODO_OK;
+    }
+
+    return ERROR;
+}
+
+int vectorEliminarDupOrd(Vector* vec, int elem)
+{
+    for(int i = 0; vec->vec[i] <= elem; i++)
+    {
+        if(vec->vec[i] == elem)
+            return TODO_OK;
+    }
+
+    return ERROR;
+}

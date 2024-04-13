@@ -70,11 +70,35 @@ int main()
     mostrar(&unVec);*/
 // ---------------------------------------------------------------------------------------------------------------
     /// Eliminar por valor
-    int resIns = vectorEliminarValor(&unVec, 49);
+    /*int resIns = vectorEliminarValor(&unVec, 49);
     if (resIns == 0)
         puts("Se elimino correctamente");
     else if (resIns == 3)
         puts("No se elimino correctamente");
+    mostrar(&unVec);*/
+// ---------------------------------------------------------------------------------------------------------------
+    /// Buscar en vector ordenado
+    /*int resIns = vectorBuscarElemOrd(&unVec, 3);
+    if (resIns == 0)
+        puts("Elemento encontrado ");
+    else if (resIns == 3)
+        puts("No se encontro el elemento");
+    mostrar(&unVec);*/
+// ---------------------------------------------------------------------------------------------------------------
+    /// Eliminar en vector ordenado
+    /*int resIns = vectorEliminarValorOrd(&unVec, 5);
+    if (resIns == 0)
+        puts("Se elimino el elemento");
+    else if (resIns == 3)
+        puts("No se pudo eliminar el elemento, ya que no se encuentra");
+    mostrar(&unVec);*/
+// ---------------------------------------------------------------------------------------------------------------
+    /// Eliminar valores duplicados en un vector ordenado
+    int resIns = vectorEliminarDupOrd(&unVec, 0);
+    if (resIns == 0)
+        puts("Se eliminaron los elementos duplicados");
+    else if (resIns == 3)
+        puts("No hay elementos duplicados");
     mostrar(&unVec);
 
 
