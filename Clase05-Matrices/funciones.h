@@ -11,5 +11,6 @@ void matrizCargarTest(int** matriz, size_t filas, size_t cols);
 int matrizSumarDiagPrin(int** matriz, int orden);
 int matrizSumarDiagSecun(int** matriz, int orden);
 int matrizSumarTriangSupDiagSecun(int** matriz, int orden);
-int** matrizProducto(int** m1, int**m2, size_t filasM1, size_t filasM1colsM2, size_t colsM2);
+int** matrizProducto(int** m1, int** m2, size_t filasM1, size_t filasM1colsM2, size_t colsM2);
 void matrizMostrar(int** matriz, size_t filas, size_t cols);
+void matrizMostrarEnEspiral(int** matriz, size_t filas, size_t cols);

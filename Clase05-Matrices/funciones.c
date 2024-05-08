@@ -92,3 +92,24 @@ void matrizMostrar(int** matriz, size_t filas, size_t cols)
         printf("\n");
     }
 }
+
+void matrizMostrarEnEspiral(int** matriz, size_t filas, size_t cols)
+{
+    for(int i = 0; i < filas; i++)
+    {
+        for(int j = i; j < cols; j++)
+            printf("%3d ", matriz[i][j]);
+        printf("\n");
+    }
+//    int i = 0;
+//    for(int j = 0; j < cols; j++)
+//        printf("%3d ", matriz[i][j]);
+//    i++;
+//    printf("%3d ", matriz[i][cols-1]);
+//    i++;
+//    for(int j = cols-1; j < filas; j--)
+//        printf("%3d ", matriz[i][j]);
+//    i--;
+//    for(int j = 0; j < cols-1; j++)
+//        printf("%3d ", matriz[i][j]);
+}

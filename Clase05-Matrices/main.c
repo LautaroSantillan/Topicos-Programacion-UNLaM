@@ -41,6 +41,12 @@ int main()
     matrizEliminar((void**)m1, 2);
     matrizEliminar((void**)m2, 4);
     matrizEliminar((void**)mp, 2);
+////////////////////////////////////////////////////////////////////////////////////////
+    /// RECORRER EN ESPIRAL
+    puts("\n---Recorrer en Espiral---");
+    int** ma1 = (int**)matrizCrear(3, 3, sizeof(int));
+    matrizCargarTest(ma1, 3, 3);
+    matrizMostrarEnEspiral(ma1, 3, ORDEN3);
 
     return 0;
 }
