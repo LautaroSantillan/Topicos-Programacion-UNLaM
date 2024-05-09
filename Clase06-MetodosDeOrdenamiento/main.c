@@ -2,9 +2,9 @@
 
 int main()
 {
-// ---------------------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------
     /// CREAR VECTOR E INSERTAR
-    MiVector vec;
+    /*MiVector vec;
     vectorCrear(&vec);
     vectorInsertarFin(&vec, 120);
     vectorInsertarFin(&vec, 64);
@@ -16,6 +16,10 @@ int main()
     vectorInsertarFin(&vec, 19);
     vectorInsertarFin(&vec, 1);
     vectorInsertarFin(&vec, 61);
+    vectorInsertarFin(&vec, 24);
+    vectorInsertarFin(&vec, 99);
+    vectorInsertarFin(&vec, 84);
+    vectorInsertarFin(&vec, 56);
     vectorMostrar(&vec);
     puts("\n");
     /// METODO: BURBUJEO
@@ -32,14 +36,22 @@ int main()
     puts("--- INSERCION ---");
     vectorOrdenarInsercion(&vec);
     vectorMostrar(&vec);
+    free(vec.vec);
+    puts("\n");*/
+// -------------------------------------------------------------------------------
+    /// TIEMPO DE EJECUCION C/METODO
+    MiVector vecRandom;
+    vectorInicializarRandom(&vecRandom, 6000);
+    vectorMostrar(&vecRandom);
     puts("\n");
-    /// TIEMPO DE C/METODO
+     /// Ordenar vector y contabilizar tiempo
 //    int segInicial = time(NULL);
-//    vectorOrdenarBurbujeo(&vec);
+//    vectorOrdenarBurbujeo(&vecRandom);
 //    int segFin = time(NULL);
 //    printf("TIEMPO: %d\n", segFin-segInicial);
-//    vectorMostrar(&vec);
-//    puts("\n");
+    //vectorMostrar(&vecRandom);
+    free(vecRandom.vec);
+    puts("\n");
 
     return 0;
 }

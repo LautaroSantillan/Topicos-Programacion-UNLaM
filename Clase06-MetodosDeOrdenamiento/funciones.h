@@ -17,10 +17,10 @@ typedef struct{
 bool vectorCrear(MiVector*);
 void vectorMostrar(MiVector*);
 int vectorInsertarFin(MiVector*, int);
+void vectorInicializarRandom(MiVector*, int);
 /// METODOS DE ORDENAMIENTO
 void intercambiar(int*, int*);
 int* buscarMenor(int*, int*);
 void vectorOrdenarBurbujeo(MiVector*);
 void vectorOrdenarSeleccion(MiVector*);
 void vectorOrdenarInsercion(MiVector*);
-void vectorInicializarRandom(MiVector*, int);

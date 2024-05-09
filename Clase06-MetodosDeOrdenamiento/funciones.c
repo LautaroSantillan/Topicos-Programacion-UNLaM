@@ -46,6 +46,18 @@ int vectorInsertarFin(MiVector* vec, int elem)
     return TODO_OK;
 }
 
+
+void vectorInicializarRandom(MiVector* vec, int ce)
+{
+    vec->ce = ce;
+    vec->cap = ce;
+    vec->vec = realloc(vec->vec, ce * sizeof(int));
+    srand(time(NULL));
+    int* ult = vec->vec + vec->ce - 1;
+    for(int* i = vec->vec; i <= ult; i++)
+        *i = rand();
+}
+
 void intercambiar(int* a, int* b)
 {
     int aux = *a;
@@ -101,15 +113,4 @@ void vectorOrdenarInsercion(MiVector* vec)
             *(j+1) = *j;
         *(j+1) = elemAIns;
     }
-}
-
-void vectorInicializarRandom(MiVector* vec, int ce)
-{
-    vec->ce = ce;
-    vec->cap = ce;
-    vec->vec = realloc(vec->vec, ce * sizeof(int));
-    srand(time(NULL));
-    int* ult = vec->vec + vec->ce - 1;
-    for(int* i = vec->vec; i <= ult; i++)
-        *i = rand();
 }
