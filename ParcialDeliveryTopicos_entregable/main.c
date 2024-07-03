@@ -29,19 +29,17 @@
 
 //void trozarRegistro(char* linea, Pedido* reg);
 //char* strchr_ALU(const char* str, int caracter);
-char* strcpy_ALU(char *dest, const char *orig);
+//char* strcpy_ALU(char *dest, const char *orig);
 
-void leerPedidos_ALU(const char* nombreArchPedidos, Vector* pedidos);
-void generarIndices_ALU(Vector* indRecetas, Vector* indIngredientes);
-void procesarPedido_ALU(const Pedido* pedido, Vector* recetas, Vector* ingredientes);
-void cargarIngredientesReceta_ALU(const char* codReceta, Vector* recetas, Vector* ingredientesReceta);
-void actualizarStock_ALU(const char* codIngr, int cantidad, Vector* ingredientes);
-void trozarRegistro(char* linea, Pedido* reg);
-void copiarIndiceRecetas(void* pvIdx, const void* pvReg, int nroReg);
-void copiarIndiceIngredientes(void* pvIdx, const void* pvReg, int nroReg);
-int compararRecetas(const void* e1, const void* e2);
-int compararIngredientes(const void* e1, const void* e2);
-void copiarReceta(void* pvDest, const void* pvOrig);
+#define TAM_NOMBRE_ARCHIVO 50
+#define TAM_LINEA_PEDIDO 50
+#define TAM_COD_RECETA 11
+
+void obtenerNombreIndice_ALU(const char* nombreArch, char* nombreArchIdx);
+int cargarProximoPedido_ALU(char* linea, Pedido* p);
+int cargarReceta_ALU(char* codReceta, Receta* receta, Vector* vector, FILE* archRecetas, FILE* archRecetasIdx);
+int actualizarIngredientes_ALU(Vector* vector, int cantidad, FILE* archIngredientes, FILE* archIngredientesIdx);
+
 
 int main()
 {
@@ -79,150 +77,182 @@ int main()
 ///Procesa los pedidos del archivo Pedidos.txt, actualizando el archivo Ingredientes.dat, para que �ste refleje la cantidad que queda en stock luego de despachar los pedidos.
 int satisfacerPedidos_ALU(const char* nombreArchPedidos, const char* nombreArchRecetas, const char* nombreArchIngredientes)
 {
-    Vector pedidos;
-    vectorCrear(&pedidos, sizeof(Pedido));
-
-    leerPedidos_ALU(nombreArchPedidos, &pedidos);
-
-    Vector indRecetas, indIngredientes;
-    vectorCrear(&indRecetas, sizeof(IndReceta));
-    vectorCrear(&indIngredientes, sizeof(IndIngrediente));
-
-    generarIndices_ALU(&indRecetas, &indIngredientes);
-
-    Vector ingredientes;
-    vectorCargarDeArchivo(nombreArchIngredientes, &ingredientes, sizeof(Ingrediente));
-
-    VectorIterador it;
-    vectorItCrear(&it, &pedidos);
-
-    Pedido* pedido;
-    while ((pedido = vectorItSiguiente(&it)) != NULL) {
-        procesarPedido_ALU(pedido, &indRecetas, &ingredientes);
+    FILE* archPedidos = fopen(nombreArchPedidos, "rt");
+    if (!archPedidos)
+    {
+        return ERR_ARCHIVO;
     }
 
-    vectorGrabar(&ingredientes, nombreArchIngredientes);
+    FILE* archRecetas = fopen(nombreArchRecetas, "rb");
+    if (!archRecetas)
+    {
+        fclose(archPedidos);
+        return ERR_ARCHIVO;
+    }
 
-    vectorDestruir(&pedidos);
-    vectorDestruir(&indRecetas);
-    vectorDestruir(&indIngredientes);
-    vectorDestruir(&ingredientes);
+    FILE* archIngredientes = fopen(nombreArchIngredientes, "r+b");
+    if (!archIngredientes)
+    {
+        fclose(archPedidos);
+        fclose(archRecetas);
+        return ERR_ARCHIVO;
+    }
+
+    char nombreArchRecetasIdx[TAM_NOMBRE_ARCHIVO];
+    obtenerNombreIndice_ALU(nombreArchRecetas, nombreArchRecetasIdx);
+    FILE* archRecetasIdx = fopen(nombreArchRecetasIdx, "rb");
+    if (!archRecetasIdx)
+    {
+        fclose(archPedidos);
+        fclose(archRecetas);
+        fclose(archIngredientes);
+        return ERR_ARCHIVO;
+    }
+
+    char nombreArchIngredientesIdx[TAM_NOMBRE_ARCHIVO];
+    obtenerNombreIndice_ALU(nombreArchIngredientes, nombreArchIngredientesIdx);
+    FILE* archIngredientesIdx = fopen(nombreArchIngredientesIdx, "rb");
+    if (!archIngredientesIdx)
+    {
+        fclose(archPedidos);
+        fclose(archRecetas);
+        fclose(archIngredientes);
+        fclose(archRecetasIdx);
+        return ERR_ARCHIVO;
+    }
+
+
+    int ret = TODO_OK;
+    char linea[TAM_LINEA_PEDIDO];
+    Pedido pedido;
+    Receta receta;
+
+    Vector vector;
+    vectorCrear(&vector, sizeof(Receta));
+
+    fgets(linea, TAM_LINEA_PEDIDO, archPedidos);
+    while (!feof(archPedidos) && ret == TODO_OK)
+    {
+        ret = cargarProximoPedido_ALU(linea, &pedido);
+        if (ret == TODO_OK)
+            ret = cargarReceta_ALU(pedido.codReceta, &receta, &vector, archRecetas, archRecetasIdx);
+        if (ret == TODO_OK)
+            ret = actualizarIngredientes_ALU(&vector, pedido.cantidad, archIngredientes, archIngredientesIdx);
+
+        fgets(linea, TAM_LINEA_PEDIDO, archPedidos);
+    }
+
+
+    fclose(archPedidos);
+    fclose(archRecetas);
+    fclose(archIngredientes);
+    fclose(archRecetasIdx);
+    fclose(archIngredientesIdx);
+
+	return ret;
+}
+
+void obtenerNombreIndice_ALU(const char* nombreArch, char* nombreArchIdx)
+{
+    strcpy(nombreArchIdx, nombreArch);
+    char* separador = strrchr(nombreArchIdx, '.');
+    if (!separador)
+        return;
+
+    *separador = '\0';
+    strcat(nombreArchIdx, ".idx\0");
+}
+
+int cargarProximoPedido_ALU(char* linea, Pedido* p)
+{
+    char separador = '	';
+    char* act = strchr(linea, '\n');
+
+    *act = '\0';
+    act = strrchr(linea, separador);
+    sscanf(act + 1, "%d", &p->cantidad);
+
+    *act = '\0';
+    act = strrchr(linea, separador);
+    strncpy(p->codReceta, act + 1, TAM_COD_RECETA);
+
+    *act = '\0';
+    sscanf(linea, "%d", &p->nroPedido);
 
     return TODO_OK;
 }
 
-void leerPedidos_ALU(const char* nombreArchPedidos, Vector* pedidos) {
-    FILE* fp = fopen(nombreArchPedidos, "rt");
-    if (!fp) {
-        perror("Error abriendo archivo de pedidos");
-        return;
+int cargarReceta_ALU(char* codReceta, Receta* receta, Vector* vector, FILE* archRecetas, FILE* archRecetasIdx)
+{
+    IndReceta idxReceta;
+
+    //BUSCO EN EL INDICE
+    fseek(archRecetasIdx, 0, SEEK_SET);
+    while (!feof(archRecetasIdx))
+    {
+        fread(&idxReceta, sizeof(IndReceta), 1, archRecetasIdx);
+        if (strcmp(idxReceta.codReceta, codReceta) == 0)
+            break;
     }
 
-    Pedido pedido;
-    char linea[256];
-    while (fgets(linea, sizeof(linea), fp)) {
-        trozarRegistro(linea, &pedido);
-        vectorInsertarAlFinal(pedidos, &pedido);
+    //SI FINALIZO EL ARCHIVO, NO EXISTE
+    if (feof(archRecetasIdx))
+        return ERR_RECETA_NO_ENCONTRADA;
+
+    //SEGUN EL INDICE, VOY DIRECTO A LA POSICION
+    fseek(archRecetas, idxReceta.nroReg * sizeof(Receta), SEEK_SET);
+    while (!feof(archRecetas))
+    {
+        fread(receta, sizeof(Receta), 1, archRecetas);
+
+        //SI YA NO HAY MAS INGREDIENTES DE ESA RECETA, PARO DE ITERAR
+        if (strcmp(receta->codReceta, codReceta) != 0)
+            break;
+
+        vectorInsertarAlFinal(vector, receta);
     }
 
-    fclose(fp);
+    return TODO_OK;
 }
 
-void generarIndices_ALU(Vector* indRecetas, Vector* indIngredientes) {
-    generarIndice("Recetas.dat", sizeof(Receta), sizeof(IndReceta), copiarIndiceRecetas, compararRecetas);
-    generarIndice("Ingredientes.dat", sizeof(Ingrediente), sizeof(IndIngrediente), copiarIndiceIngredientes, compararIngredientes);
-}
-
-void procesarPedido_ALU(const Pedido* pedido, Vector* recetas, Vector* ingredientes) {
-    // Cargar la receta en el vector
-    Vector ingredientesReceta;
-    vectorCrear(&ingredientesReceta, sizeof(Receta));
-
-    cargarIngredientesReceta_ALU(pedido->codReceta, recetas, &ingredientesReceta);
-
-    // Descontar ingredientes
-    VectorIterador it;
-    vectorItCrear(&it, &ingredientesReceta);
-
+int actualizarIngredientes_ALU(Vector* vector, int cantidad, FILE* archIngredientes, FILE* archIngredientesIdx)
+{
     Receta* receta;
-    while ((receta = vectorItSiguiente(&it)) != NULL) {
-        actualizarStock_ALU(receta->codIngr, receta->cantidad * pedido->cantidad, ingredientes);
-    }
+    Ingrediente ingrediente;
+    IndIngrediente idxIngrediente;
+    VectorIterador vectorIterador;
 
-    vectorDestruir(&ingredientesReceta);
-}
+    vectorItCrear(&vectorIterador, vector);
+    receta = vectorItPrimero(&vectorIterador);
 
-void cargarIngredientesReceta_ALU(const char* codReceta, Vector* recetas, Vector* ingredientesReceta) {
-    IndReceta indBuscado = { .codReceta = "" };
-    strcpy_ALU(indBuscado.codReceta, codReceta);
-
-    IndReceta* indReceta = vectorOrdBuscar(recetas, &indBuscado, compararRecetas);
-    if (indReceta) {
-        int nroReg = indReceta->nroReg;
-        Receta receta;
-
-        while (nroReg < vectorCantidadElementos(recetas)) {
-            vectorRecorrer(recetas, copiarReceta, &receta);
-            if (strcmp(receta.codReceta, codReceta) == 0) {
-                vectorInsertarAlFinal(ingredientesReceta, &receta);
-            }
+    //ITERO CON EL VECTOR TDA
+    while (!vectorItFin(&vectorIterador))
+    {
+        //BUSCO EN EL INDICE
+        fseek(archIngredientesIdx, 0, SEEK_SET);
+        while (!feof(archIngredientesIdx))
+        {
+            fread(&idxIngrediente, sizeof(IndIngrediente), 1, archIngredientesIdx);
+            if (strcmp(idxIngrediente.codIngr, receta->codIngr) == 0)
+                break;
         }
+
+        //SEGUN EL INDICE, VOY DIRECTO A LA POSICION
+        fseek(archIngredientes, idxIngrediente.nroReg * sizeof(Ingrediente), SEEK_SET);
+        fread(&ingrediente, sizeof(Ingrediente), 1, archIngredientes);
+
+        ingrediente.stock -= (receta->cantidad * cantidad);
+
+        fseek(archIngredientes, idxIngrediente.nroReg * sizeof(Ingrediente), SEEK_SET);
+        fwrite(&ingrediente, sizeof(ingrediente), 1, archIngredientes);
+
+        receta = vectorItSiguiente(&vectorIterador);
     }
+
+    vectorVaciar(vector);
+
+    return TODO_OK;
 }
-
-void actualizarStock_ALU(const char* codIngr, int cantidad, Vector* ingredientes) {
-    Ingrediente ingrBuscado = { .codIngr = "" };
-    strcpy_ALU(ingrBuscado.codIngr, codIngr);
-
-    Ingrediente* ingrediente = vectorOrdBuscar(ingredientes, &ingrBuscado, compararIngredientes);
-    if (ingrediente) {
-        ingrediente->stock -= cantidad;
-    }
-}
-
-void copiarReceta(void* pvDest, const void* pvOrig) {
-    Receta* dest = (Receta*)pvDest;
-    const Receta* orig = (const Receta*)pvOrig;
-    strcpy_ALU(dest->codReceta, orig->codReceta);
-    strcpy_ALU(dest->codIngr, orig->codIngr);
-    dest->cantidad = orig->cantidad;
-}
-
-void trozarRegistro(char* linea, Pedido* reg) {
-    char* token = strtok(linea, ",");
-    reg->nroPedido = atoi(token);
-    token = strtok(NULL, ",");
-    strcpy_ALU(reg->codReceta, token);
-    token = strtok(NULL, ",");
-    reg->cantidad = atoi(token);
-}
-
-void copiarIndiceRecetas(void* pvIdx, const void* pvReg, int nroReg) {
-    IndReceta* idx = (IndReceta*)pvIdx;
-    const Receta* reg = (const Receta*)pvReg;
-    strcpy_ALU(idx->codReceta, reg->codReceta);
-    idx->nroReg = nroReg;
-}
-
-void copiarIndiceIngredientes(void* pvIdx, const void* pvReg, int nroReg) {
-    IndIngrediente* idx = (IndIngrediente*)pvIdx;
-    const Ingrediente* reg = (const Ingrediente*)pvReg;
-    strcpy_ALU(idx->codIngr, reg->codIngr);
-    idx->nroReg = nroReg;
-}
-
-int compararRecetas(const void* e1, const void* e2) {
-    const IndReceta* rec1 = (const IndReceta*)e1;
-    const IndReceta* rec2 = (const IndReceta*)e2;
-    return strcmp(rec1->codReceta, rec2->codReceta);
-}
-
-int compararIngredientes(const void* e1, const void* e2) {
-    const IndIngrediente* ingr1 = (const IndIngrediente*)e1;
-    const IndIngrediente* ingr2 = (const IndIngrediente*)e2;
-    return strcmp(ingr1->codIngr, ingr2->codIngr);
-}
-
 
 /*void trozarRegistro(char* linea, Pedido* reg){
     char* punteroLinea;
@@ -250,7 +280,7 @@ char* strchr_ALU(const char* str, int caracter){
     return NULL;
 }*/
 
-char* strcpy_ALU(char *dest, const char *orig){
+/*char* strcpy_ALU(char *dest, const char *orig){
     char *aux = dest;
     while(*orig){
         *dest=*orig;
@@ -259,4 +289,4 @@ char* strcpy_ALU(char *dest, const char *orig){
     }
     *dest='\0';
     return aux;
-}
+}*/
